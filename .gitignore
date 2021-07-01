@@ -1,8 +1,10 @@
 venv/*
 *.pyc
 
-assemblies/times.txt
-assemblies/*_diff.png
+hardawre/assemblies/times.txt
+hardware/assemblies/*_diff.png
+hardware/assemblies/times.txt
+
 bom/
 deps/
 dxfs/
