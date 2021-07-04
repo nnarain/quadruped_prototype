@@ -15,7 +15,7 @@ include <openscad-servos/vitamins/servo_joints.scad>
 servo = SG90;
 bind = 0.01;
 
-holder_thickness = 1;
+holder_thickness = 2;
 
 base_holder_spec = [
     // Servo
@@ -34,7 +34,7 @@ leg_spec = [
     // Base holder
     base_holder_spec,
     // Length
-    50,
+    35,
     // End thickness
     5,
     // Circle joint scale
@@ -222,18 +222,18 @@ module base_holder(spec) {
             // Exterior cube
             span_cube([-ex, ex], [-ey, ey], [0, ez]);
             // Screw placement cube
-            span_cube([-sx, sx], [-sy, sy], [screw_h - sz, screw_h]);
+            // span_cube([-sx, sx], [-sy, sy], [screw_h - sz, screw_h]);
             // Circle joint
             translate([circle_joint_x_offset, 0, -circle_joint_height])
                 cylinder(r=circle_joint_radius, h=circle_joint_height);
         }
         // Interior cutout
         span_cube([-ix, ix], [-iy, iy], [thickness, exterior_z + bind]);
-        // Screw holes
-        for (pos = screw_hole_positions) {
-            translate([pos[0] - screw_hole_x_offset, pos[1] - screw_hole_y_offset, 0])
-                cylinder(r=screw_hole_radius, h=screw_hole_cutout_height);
-        }
+        // // Screw holes
+        // for (pos = screw_hole_positions) {
+        //     translate([pos[0] - screw_hole_x_offset, pos[1] - screw_hole_y_offset, 0])
+        //         cylinder(r=screw_hole_radius, h=screw_hole_cutout_height);
+        // }
         // Cable cutout
         span_cube([ix - (thickness * 2), ex + bind], [-ccw, ccw], [-thickness, cable_cutout_height]);
     }
@@ -262,14 +262,16 @@ module joint(spec) {
     circle_joint_cutout_height = servo_axiel_height(base_holder_servo(base));
     circle_joint_x_offset = base_holder_circle_joint_x_offset(base);
 
+    ey_adjustment = 1;
+
     union() {
         difference() {
             union() {
-                span_cube([0, exterior_x], [-ey, ey], [-circle_joint_height, exterior_z]);
+                span_cube([0, exterior_x], [-ey, ey - ey_adjustment], [-circle_joint_height, exterior_z]);
 
                 slot_x_offset = joint_slot_x_offset(spec);
                 slot_dims = joint_slot_dims(spec);
-                span_cube([slot_x_offset, slot_x_offset + slot_dims[0]], [-ey, ey], [exterior_z, exterior_z + slot_dims[2]]);
+                span_cube([slot_x_offset, slot_x_offset + slot_dims[0]], [-ey, ey - ey_adjustment], [exterior_z, exterior_z + slot_dims[2]]);
             }
             span_cube([-bind, exterior_x - joint_end_thickness(spec)], [-cutout_y, cutout_y], [0, interior_z]);
 
@@ -431,6 +433,8 @@ assembly("main") {
         }
     }
     main_body_stl();
+
+    // leg_with_foot();
 }
 }
 
