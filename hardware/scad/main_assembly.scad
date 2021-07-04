@@ -62,7 +62,7 @@ foot_spec = [
 
 main_body_spec = [
     // Dimensions
-    [100, 100, 10],
+    [75, 75, 7.5],
     // Thickness
     5,
     // Base holder
