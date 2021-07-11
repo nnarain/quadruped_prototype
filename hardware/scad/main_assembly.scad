@@ -420,6 +420,24 @@ module leg_with_foot() {
         }
 }
 
+module leg_mount() {
+    base_size = 50;
+    stand_width = 10;
+
+    union() {
+        span_cube([-base_size, base_size], [-base_size, base_size], [0, 10]);
+        span_cube([-stand_width, stand_width], [base_size - stand_width, (base_size - stand_width) + stand_width], [10 - 0.01, 63]);
+
+        translate([0, base_size - stand_width - base_holder_exterior_x(base_holder_spec) / 2 + 0.01, 45])
+        zrot(-90) base_holder(base_holder_spec);
+    }
+}
+
+module leg_mount_stl() {
+    stl("leg_mount");
+    leg_mount();
+}
+
 module main_assembly() {
 assembly("main") {
     for (trans = main_body_base_holder_transforms(main_body_spec)) {
@@ -435,6 +453,10 @@ assembly("main") {
     main_body_stl();
 
     // leg_with_foot();
+
+    // leg_mount_stl();
+    // translate([0, 30, 45])
+    //     zrot(-90) leg_with_foot();
 }
 }
 
