@@ -69,6 +69,15 @@ main_body_spec = [
     base_holder_spec
 ];
 
+prop_spec = [
+    // main body
+    main_body_spec,
+    // Prop height
+    50,
+    // Prop interior cutout
+    0.90
+];
+
 function base_holder_servo(spec) = spec[0];
 function base_holder_thickness(spec) = spec[1];
 function base_holder_clearance(spec) = spec[2];
@@ -98,8 +107,8 @@ function base_holder_screw_x(spec) = base_holder_screw_dims(spec)[0];
 function base_holder_screw_y(spec) = base_holder_screw_dims(spec)[1];
 function base_holder_screw_z(spec) = base_holder_screw_dims(spec)[2];
 function base_holder_screw_height(spec) = servo_screw_bar_offset(base_holder_servo(spec))[2] + base_holder_thickness(spec);
-function base_holder_base_cable_cutout_height(spec) = base_holder_exterior_z(spec) * 0.3;
-function base_holder_base_cable_cutout_width(spec) = base_holder_exterior_y(spec) * 0.75;
+function base_holder_base_cable_cutout_height(spec) = base_holder_exterior_z(spec) * 1.0;
+function base_holder_base_cable_cutout_width(spec) = base_holder_exterior_y(spec) * 0.45;
 function base_holder_circle_joint_radius(spec) = servo_axiel_radius(base_holder_servo(spec));
 function base_holder_circle_joint_height(spec) = spec[3];
 function base_holder_circle_joint_x_offset(spec) = (servo_base_dim_x(base_holder_servo(spec)) / 2) - (servo_base_dim_y(base_holder_servo(spec)) / 2);
@@ -158,6 +167,10 @@ function main_body_base_holder_transform_x(spec) = spec[0];
 function main_body_base_holder_transform_y(spec) = spec[1];
 function main_body_base_holder_transform_z(spec) = spec[2];
 function main_body_base_holder_transform_r(spec) = spec[3];
+
+function prop_main_body(spec) = spec[0];
+function prop_height(spec) = spec[1];
+function prop_interior_cutout(spec) = spec[2];
 
 module base_holder(spec) {
     // 1. An outer cube to contain the servo
@@ -221,21 +234,14 @@ module base_holder(spec) {
         union() {
             // Exterior cube
             span_cube([-ex, ex], [-ey, ey], [0, ez]);
-            // Screw placement cube
-            // span_cube([-sx, sx], [-sy, sy], [screw_h - sz, screw_h]);
             // Circle joint
             translate([circle_joint_x_offset, 0, -circle_joint_height])
                 cylinder(r=circle_joint_radius, h=circle_joint_height);
         }
         // Interior cutout
         span_cube([-ix, ix], [-iy, iy], [thickness, exterior_z + bind]);
-        // // Screw holes
-        // for (pos = screw_hole_positions) {
-        //     translate([pos[0] - screw_hole_x_offset, pos[1] - screw_hole_y_offset, 0])
-        //         cylinder(r=screw_hole_radius, h=screw_hole_cutout_height);
-        // }
         // Cable cutout
-        span_cube([ix - (thickness * 2), ex + bind], [-ccw, ccw], [-thickness, cable_cutout_height]);
+        span_cube([ix - (thickness * 2), ex + bind], [-ccw, ccw], [thickness, cable_cutout_height]);
     }
 }
 
@@ -438,6 +444,44 @@ module leg_mount_stl() {
     leg_mount();
 }
 
+module prop(spec) {
+    main_body = prop_main_body(spec);
+
+    main_body_dims = main_body_dims(main_body);
+    thickness = main_body_thickness(main_body);
+
+    base_holder_spec = main_body_base_holder(main_body);
+
+    clearance = 10;
+
+    exterior_x = main_body_exterior_x(main_body) - clearance;
+    exterior_y = main_body_exterior_y(main_body) - clearance;
+    exterior_z = prop_height(spec);
+
+    ex = exterior_x / 2;
+    ey = exterior_y / 2;
+    ez = exterior_z;
+
+    cutout_percent = prop_interior_cutout(spec);
+    ix = ex * cutout_percent;
+    iy = ey * cutout_percent;
+    iz = ez * cutout_percent;
+
+    base_holder_dims = base_holder_exterior_dims(base_holder_spec);
+
+    difference() {
+        span_cube([-ex, ex], [-ey, ey], [0, ez]);
+
+        cutout_z_offset = 5;
+        span_cube([-ix, ix], [-iy, iy], [cutout_z_offset, ez + cutout_z_offset]);
+    }
+}
+
+module prop_stl() {
+    stl("prop");
+    prop(prop_spec);
+}
+
 module main_assembly() {
 assembly("main") {
     for (trans = main_body_base_holder_transforms(main_body_spec)) {
@@ -451,6 +495,9 @@ assembly("main") {
         }
     }
     main_body_stl();
+
+    zmove(-(prop_height(prop_spec) + 25))
+    prop_stl();
 
     // leg_with_foot();
 
