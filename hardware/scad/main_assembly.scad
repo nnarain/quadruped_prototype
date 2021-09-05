@@ -1,5 +1,5 @@
 //
-// Manipulator design
+// Quadruped design
 //
 // @author Natesh Narain
 //
@@ -66,16 +66,20 @@ main_body_spec = [
     // Thickness
     5,
     // Base holder
-    base_holder_spec
+    base_holder_spec,
+    // Center hole
+    0.30
 ];
 
 prop_spec = [
     // main body
     main_body_spec,
     // Prop height
-    50,
+    60,
     // Prop interior cutout
-    0.90
+    0.90,
+    // Side cutout
+    60
 ];
 
 function base_holder_servo(spec) = spec[0];
@@ -162,6 +166,7 @@ function main_body_base_holder_transforms(spec) = [
         -90
     ]
 ];
+function main_body_center_cutout(spec) = spec[3];
 
 function main_body_base_holder_transform_x(spec) = spec[0];
 function main_body_base_holder_transform_y(spec) = spec[1];
@@ -171,6 +176,7 @@ function main_body_base_holder_transform_r(spec) = spec[3];
 function prop_main_body(spec) = spec[0];
 function prop_height(spec) = spec[1];
 function prop_interior_cutout(spec) = spec[2];
+function prop_side_cutout(spec) = spec[3];
 
 module base_holder(spec) {
     // 1. An outer cube to contain the servo
@@ -343,10 +349,6 @@ module main_body(spec) {
 
     base_holder_spec = main_body_base_holder(spec);
 
-    // interior_x = main_body_dims[0];
-    // interior_y = main_body_dims[1];
-    // interior_z = main_body_dims[2];
-
     exterior_x = main_body_exterior_x(spec);
     exterior_y = main_body_exterior_y(spec);
     exterior_z = main_body_exterior_z(spec);
@@ -355,10 +357,18 @@ module main_body(spec) {
     ey = exterior_y / 2;
     ez = exterior_z;
 
+    interior_cutout = main_body_center_cutout(spec);
+    ix = ex * interior_cutout;
+    iy = ey * interior_cutout;
+    iz = exterior_z + bind * 2;
+
     base_holder_dims = base_holder_exterior_dims(base_holder_spec);
 
     union() {
-        span_cube([-ex, ex], [-ey, ey], [0, ez]);
+        difference() {
+            span_cube([-ex, ex], [-ey, ey], [0, ez]);
+            span_cube([-ix, ix], [-iy, iy], [-iz, iz]);
+        }
 
         for (trans = main_body_base_holder_transforms(spec)) {
             x = main_body_base_holder_transform_x(trans);
@@ -467,13 +477,15 @@ module prop(spec) {
     iy = ey * cutout_percent;
     iz = ez * cutout_percent;
 
+    side_cutout = prop_side_cutout(spec);
+    sc = side_cutout / 2;
+
     base_holder_dims = base_holder_exterior_dims(base_holder_spec);
 
     difference() {
         span_cube([-ex, ex], [-ey, ey], [0, ez]);
-
-        cutout_z_offset = 5;
-        span_cube([-ix, ix], [-iy, iy], [cutout_z_offset, ez + cutout_z_offset]);
+        span_cube([-ix, ix], [-iy, iy], [-bind, ez + bind]);
+        span_cube([-sc, sc], [-(ey + bind), 0], [-bind, 30]);
     }
 }
 
