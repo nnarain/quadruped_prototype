@@ -416,9 +416,9 @@ module servo_with_joint(servo, joint) {
 module leg_with_foot() {
     base_dims = servo_base_dims(servo);
 
-    translate([-base_dims[0] / 2, -base_dims[1] / 2, holder_thickness]) servo_with_joint(servo, SG90_JOINT1);
+    // translate([-base_dims[0] / 2, -base_dims[1] / 2, holder_thickness]) servo_with_joint(servo, SG90_JOINT1);
     // base_holder(base_holder_spec);
-    base_holder_stl();
+    // base_holder_stl();
 
     thickness = base_holder_thickness(joint_base_holder(leg_spec));
     exterior_x = joint_length(leg_spec);
@@ -494,6 +494,23 @@ module prop_stl() {
     prop(prop_spec);
 }
 
+//
+//! 1. Remove support material from leg and foot parts
+//! 2. Take the tab/joint for each servo and insert it into the slot on the leg and foot parts
+//! 3. Insert a servo into the holder on the leg part
+//! 4. Attach the foot part to the servo that was inserted into the leg part (this will require some force)
+//
+module leg_foot_assembly() {
+assembly("leg_foot") {
+    leg_with_foot();
+}
+}
+
+//
+//! 1. Remove support material from main body part
+//! 2. Insert a servo motors into each of the corner holders
+//! 3. Attach the leg/foot assembly to each servo on the main body
+//
 module main_assembly() {
 assembly("main") {
     for (trans = main_body_base_holder_transforms(main_body_spec)) {
@@ -502,20 +519,22 @@ assembly("main") {
         z = main_body_base_holder_transform_z(trans);
         r = main_body_base_holder_transform_r(trans);
 
+        servo_dims = servo_base_dims(servo);
+
         translate([x, y, z]) {
-            zrot(r) leg_with_foot();
+            zrot(r) {
+                translate([-servo_dims[0] / 2, -servo_dims[1] / 2, holder_thickness])
+                    servo_with_joint(servo, SG90_JOINT1);
+                leg_foot_assembly();
+            }
         }
     }
     main_body_stl();
 
-    zmove(-(prop_height(prop_spec) + 25))
-    prop_stl();
+    // zmove(-(prop_height(prop_spec) + 25))
+    // prop_stl();
 
     // leg_with_foot();
-
-    // leg_mount_stl();
-    // translate([0, 30, 45])
-    //     zrot(-90) leg_with_foot();
 }
 }
 
