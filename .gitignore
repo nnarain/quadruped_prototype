@@ -8,7 +8,11 @@ hardware/assemblies/times.txt
 bom/
 deps/
 dxfs/
-stls/
+
+hardware/stls/*.stl
+hardware/stls/*_diff.png
+hardware/stls/*.json
+hardware/stls/*.txt
 
 *.log
 *.echo
